@@ -3,6 +3,10 @@ Redis plugin for Dokku
 
 Project: https://github.com/progrium/dokku
 
+Changes in this Fork
+--------------------
+Fixed a bug where the proper Redis URL wasn't getting set when the redis:link command is run.
+
 Installation
 ------------
 ```
