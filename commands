@@ -20,8 +20,9 @@ if [[ $1 == redis:* ]]; then
         exit 1
     fi
 
-    PLUGIN_NAME="redis"
-    CONTAINER_NAME="${PLUGIN_NAME}_$APP"
+    DOCKER_IMAGE=jezdez/redis
+    PLUGIN_NAME=redis
+    CONTAINER_NAME="${PLUGIN_NAME}/$APP"
     HOST_DIR="$DOKKU_ROOT/$APP/$PLUGIN_NAME"
     ENVVAR_NAME="REDIS_URL"
 fi
@@ -30,7 +31,7 @@ case "$1" in
   redis:create)
 
     # Check if Redis container is installed
-    IMAGE=$(docker images | grep "jezdez/redis" | awk '{print $3}')
+    IMAGE=$(docker images | grep "$DOCKER_IMAGE" | awk '{print $3}')
     if [[ -z $IMAGE ]]; then
         echo "Redis image not found... Did you run 'dokku plugins-install' ?"
         exit 1
@@ -51,10 +52,19 @@ case "$1" in
     fi
     VOLUME="$HOST_DIR:/opt/redis"
 
+    # Fork DB image
+    echo "       Running parent $PLUGIN_NAME image"
+    ID=$(docker run -d $DOCKER_IMAGE /bin/bash -c "exit 0")
+    docker wait $ID > /dev/null
+    echo "       Committing $PLUGIN_NAME image"
+    IMAGE=$(docker commit $ID)
+    docker tag $IMAGE $CONTAINER_NAME
+
     # Launch container
-    docker run -v $VOLUME --name=$CONTAINER_NAME -d jezdez/redis \
-        /usr/bin/redis-server /etc/redis/redis.conf
+    ID=$(docker run -v $VOLUME --name=$PLUGIN_NAME -d $CONTAINER_NAME /usr/bin/redis-server /etc/redis/redis.conf)
+
     # Link to a potential existing app
+    echo "       Linking"
     dokku redis:link $APP $APP
     echo "-----> Redis container created: $CONTAINER_NAME"
     sleep 1
