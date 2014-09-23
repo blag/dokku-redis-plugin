@@ -8,9 +8,6 @@ MAINTAINER Jannis Leidel "jannis@leidel.info"
 ENV DEBIAN_FRONTEND noninteractive
 
 RUN apt-get update && \
-    apt-get -y install software-properties-common && \
-    add-apt-repository ppa:chris-lea/redis-server && \
-    apt-get update && \
     apt-get -y install redis-server
 
 RUN sed -i 's/bind 127.0.0.1/bind 0.0.0.0/' /etc/redis/redis.conf && \
