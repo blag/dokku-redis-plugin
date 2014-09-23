@@ -107,10 +107,9 @@ case "$1" in
             echo "You must specify a container name"
             exit 1
         fi
-        CONTAINER_NAME="${PLUGIN_NAME}_$3"
 
         # link this container as "redis"
-        dokku link:create "$APP" "$CONTAINER_NAME" "$PLUGIN_NAME"
+        dokku link:create "$APP" "$PLUGIN_NAME" "$PLUGIN_NAME"
 
         # figure out IP to set env var
         ID=$(docker ps -a | grep "$CONTAINER_NAME" | awk '{print $1}')
